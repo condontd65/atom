@@ -80,9 +80,9 @@ class Map extends React.Component {
         paint: {
           // Set the circle fill and color based on
           // 311 event, we will only display "Litter" or
-          // "Missed Trash or Recycling" under "Service Type Name"
+          // "Missed Trash or Recycling" under "service_name"
           'circle-color': {
-            property: 'Service Type Name',
+            property: 'service_name',
             type: 'categorical',
             stops: [['Litter', '#color'],['Missed Trash or Recycling','#color']]
           },
@@ -115,11 +115,46 @@ class Map extends React.Component {
       */
 
       // Set default date filters for trash 311
-      const deafaultFromDateFilter = [
+      const defaultFromDateFilter = [
         '>=',
-        ['number', ['get', 'Time Submitted']],
-        getTime(this.props.toDate),
+        ['number', ['get', 'requested_datetime']],
+        getTime(this.props.fromDate),
       ];
+      const defaultToDateFilter = [
+        '<=',
+        ['number', ['get', 'requested_datetime']],
+        getTime(this.props.toDate)
+      ];
+      this.map.setFilter('311-point', [
+        'all',
+        defaultFromDateFilter,
+        defaultToDateFilter,
+      ]);
+
+      // Calculate initial pointCount value
+      // See K for why this may be necessary?
+      const { allModesSelected } = this.props.makeFeatures.Query(
+        this.props.modeSelection,
+        this.props.fromDate,
+        this.props.toDate,
+        this.props.dataset
+      );
+      this.updatePointCount(allModesSelected, this.props.dataset);
+
+      // Query feature service to determine last update date
+      this.threeoneoneFeatureLayer
+        .query()
+        .where('1=1')
+        .orderBy('Time Submitted', 'DESC')
+        .run((error, featureCollection) => {
+          if (error) {
+            console.error(error);
+            return;
+          }
+          const mostRecentFeature = new Date(
+            featureCollection.features[0].properties.requested_datetime
+          )
+        }))
 
 
 
