@@ -153,16 +153,18 @@ class Map extends React.Component {
           }
           const mostRecentFeature = new Date(
             featureCollection.features[0].properties.requested_datetime
-          )
-        }))
-
-
-
-
-
+          );
+          const lastUpdate = format(mostRecentFeature, 'MM/YYYY');
+          // set last updated state for this component
+          this.setState({ lastUpdatedDate: lastUpdate });
+          // pass that date to the parent mapcontainer components
+          // so it can be displayed under filters
+          this.props.updateDatethis.state.lastUpdatedDate);
+        });
     });
+    // Now on line 305
 
-    //Map will show points
+    // Map will show points
 
 
 
