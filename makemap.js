@@ -5,8 +5,8 @@ import FeatureCounts from '../components/FeatureCounts';
 
 // We can't import these server-side because they require "window"
 const mapboxgl = process.browser ? require('mapbox-gl') : null;
-//Despite using mapboxgl to render the map,
-//we still use esri-leaflet to query to the layer
+// Despite using mapboxgl to render the map,
+// we still use esri-leaflet to query to the layer
 const { featureLayer } = process.browser ? require('esri-leaflet') : {};
 
 const url_311 =
@@ -23,8 +23,8 @@ class Map extends React.Component {
   }
 
   componentDidMount() {
-    //Set up esri-leaflet feature services for 311 that we query against
-    //updating pointCount and lastUpdatedDate
+    // Set up esri-leaflet feature services for 311 that we query against
+    // updating pointCount and lastUpdatedDate
     this.threeoneoneFeatureLayer = featureLayer({
       url: url_311,
     });
@@ -65,11 +65,71 @@ class Map extends React.Component {
     });
 
     this.map.on('load', () => {
-      //add 311 as geojson
-      type: 'geojson',
-      data: `${url_311}/query?where=1%3D1&outFields=*&outSR=4326&returnExceededLimitFeatures=true&f=pgeojson`,
+      // add 311 as geojson
+      this.map.addSource('311', {
+        type: 'geojson',
+        data: `${url_311}/query?where=1%3D1&outFields=*&outSR=4326&returnExceededLimitFeatures=true&f=pgeojson`,
+      });
+      // Will be adding a heatmap at further zoomed out and
+      // points when zoomed in for 311 trash related incidents
+
+      this.map.addLayer({
+        id: '311-point',
+        type: 'circle',
+        source: '311',
+        paint: {
+          // Set the circle fill and color based on
+          // 311 event, we will only display "Litter" or
+          // "Missed Trash or Recycling" under "Service Type Name"
+          'circle-color': {
+            property: 'Service Type Name',
+            type: 'categorical',
+            stops: [['Litter', '#color'],['Missed Trash or Recycling','#color']]
+          },
+          'circle-stroke-width': 1,
+          // Set opacity to appear/fade in the zoom levels outlined
+          // by K to allow for heat map to show out better
+          'circle-stroke-opacity': {
+            stops: [[11,0], [12,1]],
+          },
+          'circle-opacity': {
+            stops: [[11, 0], [12, 1]],
+          },
+        },
+      });
+
+      // Add heatmap layer for 311 trash information
+      // Work on ways to implement this later
+      /*
+      this.map.addLayer({
+        id: '311-heat',
+        type: 'heatmap',
+        source: '311',
+        paint: {
+          // Increase intensity as zoom level decreases per K's code
+          'heatmap-intensity': {
+            stops: [[11,1], [15,3]],
+          },
+        }
+      });
+      */
+
+      // Set default date filters for trash 311
+      const deafaultFromDateFilter = [
+        '>=',
+        ['number', ['get', 'Time Submitted']],
+        getTime(this.props.toDate),
+      ];
+
+
+
+
+
     });
 
-    
+    //Map will show points
+
+
+
   }
 }
