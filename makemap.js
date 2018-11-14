@@ -145,7 +145,7 @@ class Map extends React.Component {
       this.threeoneoneFeatureLayer
         .query()
         .where('1=1')
-        .orderBy('Time Submitted', 'DESC')
+        .orderBy('requested_datetime', 'DESC')
         .run((error, featureCollection) => {
           if (error) {
             console.error(error);
@@ -163,6 +163,38 @@ class Map extends React.Component {
         });
     });
     // Now on line 305
+    // Creating pop ups for clicking on the points
+    this.map.on('click', e => {
+      // Show pop up info for all crashes occurred in a clicked
+      // location. This will account for stacked points
+
+      // Get number of features at clicked location
+      const features = this.map.queryRenderedFeatures(e.point);
+      const numFeatures - features.length;
+
+      if (!features.length) {
+        return;
+      }
+
+      // Determine the datefield to use
+      // Probably won't need this as I'm only using one dataset
+      /*
+      const dateField = this.props.dataset == '311' ? 'requested_datetime' :'date_time';
+      */
+
+      // This date_time field above may be broken
+
+      // Get service name and date of each request at the location
+      const properties = features
+        .map(feature => [
+          feature.properties.service_name,
+          feature.properties.requested_datetime,
+        ])
+        // Sort events by most-recent to least recent in pop up
+        .sort((a, b) => {
+          return a[1] > b[1] ? -1 : 1;
+        });
+    })
 
     // Map will show points
 
