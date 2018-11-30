@@ -178,9 +178,9 @@ class Map extends React.Component {
 
       // Determine the datefield to use
       // Probably won't need this as I'm only using one dataset
-      /*
-      const dateField = this.props.dataset == '311' ? 'requested_datetime' :'date_time';
-      */
+
+      const dateField = this.props.dataset == 'trash' ? 'requested_datetime' :'date_time';
+
 
       // This date_time field above may be broken
 
@@ -195,10 +195,45 @@ class Map extends React.Component {
           return a[1] > b[1] ? -1 : 1;
         });
     })
+    // Line 335
+    new mapbox1.Popup({ closeOnClick: true })
+      .setLngLat(features[0].geometry.coordinates)
+      // Put number of events at top of popup, and
+      // for each event in aray of trash clicked on,
+      // creat a new element
+      .setHTML(
+        `<div style="min-width: 230px">
+          <div>
+            <ul class="d1 d1--sm">
+              <li class="dl-i dl-i--b">
+                <div class="dl-d">${numFeatures} ${
+          numFeatures > 1 ? 'events' : 'event'
+        }</div>
+              <li>
+              <li class="dl-i dl-i--b">
+                <div class="dl-t">
+                  ${properties
+                    .map(
+                      trash =>
+                        `${format(trash[1], 'MM/DD/YYYY, HH:MM:SS')}: ${trash[0]}<br/>`
+                    )
+                    .join('')}
+                </div>>
+              </li>
+            </ul>
+          </div>`
+      )
+      .setLngLat(features[0].geometry.coordinates)
+      .addTo(this.map);
+  });
 
-    // Map will show points
-
-
-
-  }
+  // Change mouse to a pointer when hovering over a point
+  this.map.on('mousemove', e => {
+    const features = this.map.queryRenderedFeatures(e.point, {
+      layers: ['311-point'],
+    });
+    features.length > 0
+      ? (this.map.getCanvas().style.cursor = 'pointer')
+      : (this.map.getCanvas().style.cursor = '');
+  });
 }
